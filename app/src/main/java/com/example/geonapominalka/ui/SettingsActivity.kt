@@ -1,12 +1,13 @@
 package com.example.geonapominalka.ui
 import android.Manifest
-import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -14,36 +15,15 @@ import androidx.lifecycle.lifecycleScope
 import com.example.geonapominalka.GeoApp
 import com.example.geonapominalka.R
 import com.example.geonapominalka.databinding.ActivitySettingsBinding
-import com.example.geonapominalka.util.NotificationChannels
-import com.example.geonapominalka.util.NotificationSoundImporter
+import com.example.geonapominalka.util.Constants
 import com.example.geonapominalka.util.TileSources
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-/** Настройки приложения (п.1.7 ТЗ): тема, звук, вибрация, частота опроса, сброс данных. */
+/** Настройки приложения: тема, звук/вибрация уведомлений (через системный экран),
+ *  частота опроса местоположения, стиль карты, сброс данных. */
 class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
     private lateinit var app: GeoApp
-    private val pickRingtone = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val pickedUri = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
-            lifecycleScope.launch {
-                // NotificationChannel.setSound() понимает только content:// — на некоторых
-                // прошивках (MIUI и др.) пикер отдаёт file:// напрямую, система такой Uri
-                // читать не может и молча подставляет звук по умолчанию. Регистрируем файл
-                // в MediaStore, чтобы получить валидный content:// Uri.
-                val playableUri = pickedUri?.let { NotificationSoundImporter.toPlayableUri(this@SettingsActivity, it) }
-                if (pickedUri != null && playableUri == null) {
-                    android.widget.Toast.makeText(
-                        this@SettingsActivity, R.string.msg_sound_import_failed, android.widget.Toast.LENGTH_LONG
-                    ).show()
-                }
-                app.settingsRepository.setSoundUri(playableUri?.toString())
-                NotificationChannels.rebuildReminderChannel(this@SettingsActivity, playableUri, binding.switchVibration.isChecked)
-                updateCurrentSoundLabel(playableUri)
-            }
-        }
-    }
     // Повторный запрос ACTIVITY_RECOGNITION при включении адаптивного режима, если разрешение не выдано
     private val requestActivityRecognition = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -65,8 +45,7 @@ class SettingsActivity : AppCompatActivity() {
         setupAdaptiveModeAndInterval()
         setupInterval()
         setupMapStyle()
-        setupVibration()
-        setupSound()
+        setupSoundSettingsLink()
         setupReset()
         setupBackgroundWorkLink()
     }
@@ -161,10 +140,9 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
     /**
-     * Стиль карты (п.1.7 ТЗ, "выбор провайдера карт" — реализовано как выбор стиля/слоя,
-     * т.к. у бесплатных провайдеров без ключа нет отдельного переключателя "провайдер").
-     * Значение хранится тем же ключом mapType, что и переключатель на самой карте —
-     * они синхронизированы через один и тот же Flow в SettingsRepository.
+     * Стиль карты — реализовано как выбор стиля/слоя, т.к. у бесплатных провайдеров
+     * без ключа нет отдельного переключателя "провайдер". Значение хранится тем же
+     * ключом mapType, что и переключатель на самой карте.
      */
     private fun setupMapStyle() {
         val idByStyle = mapOf(
@@ -183,40 +161,27 @@ class SettingsActivity : AppCompatActivity() {
             lifecycleScope.launch { app.settingsRepository.setMapType(style.ordinal) }
         }
     }
-    private fun setupVibration() {
-        lifecycleScope.launch {
-            app.settingsRepository.vibration.collect { enabled ->
-                if (binding.switchVibration.isChecked != enabled) binding.switchVibration.isChecked = enabled
+    /**
+     * Звук и вибрация канала "Гео-напоминания" настраиваются пользователем напрямую в
+     * системных настройках — начиная с Android 8 система сознательно блокирует
+     * программное изменение звука/вибрации уже созданного канала (защита от приложений,
+     * тайно меняющих пользовательский выбор), поэтому единственный надёжный способ,
+     * работающий на любой прошивке — открыть системный экран настроек канала напрямую.
+     */
+    private fun setupSoundSettingsLink() {
+        binding.btnOpenSoundSettings.setOnClickListener {
+            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                    putExtra(Settings.EXTRA_CHANNEL_ID, Constants.REMINDER_CHANNEL_ID)
+                }
+            } else {
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", packageName, null)
+                }
             }
+            startActivity(intent)
         }
-        binding.switchVibration.setOnCheckedChangeListener { _, checked ->
-            lifecycleScope.launch {
-                app.settingsRepository.setVibration(checked)
-                val soundUri = app.settingsRepository.soundUri.first()?.let { Uri.parse(it) }
-                NotificationChannels.rebuildReminderChannel(this@SettingsActivity, soundUri, checked)
-            }
-        }
-    }
-    private fun setupSound() {
-        lifecycleScope.launch {
-            val soundUri = app.settingsRepository.soundUri.first()?.let { Uri.parse(it) }
-            updateCurrentSoundLabel(soundUri)
-        }
-        binding.btnChooseSound.setOnClickListener {
-            val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
-                putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-                putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-            }
-            pickRingtone.launch(intent)
-        }
-    }
-    /** Показывает название выбранного звука — чтобы было видно, что выбор применился. */
-    private fun updateCurrentSoundLabel(uri: Uri?) {
-        val name = uri
-            ?.let { RingtoneManager.getRingtone(this, it)?.getTitle(this) }
-            ?: getString(R.string.sound_default)
-        binding.currentSoundLabel.text = getString(R.string.label_current_sound, name)
     }
     private fun setupReset() {
         binding.btnResetData.setOnClickListener {
@@ -230,15 +195,40 @@ class SettingsActivity : AppCompatActivity() {
                 .show()
         }
     }
-    /** Постоянно доступная ссылка на системные настройки — для устройств, где агрессивная
-     *  батарейная оптимизация прошивки мешает приходу уведомлений при заблокированном экране. */
+    /**
+     * Прямой запрос на исключение из батарейной оптимизации — один системный диалог
+     * с кнопкой "Разрешить", без похода вручную по настройкам. Нужен на прошивках
+     * (MIUI и др.), где агрессивное энергосбережение мешает приходу уведомлений при
+     * заблокированном экране, пока приложение свёрнуто.
+     */
     private fun setupBackgroundWorkLink() {
         binding.btnOpenAppSettings.setOnClickListener {
-            val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            val powerManager = getSystemService(PowerManager::class.java)
+            val alreadyIgnoring = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                powerManager?.isIgnoringBatteryOptimizations(packageName) == true
+            if (alreadyIgnoring) {
+                openAppDetailsSettings()
+                return@setOnClickListener
+            }
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                )
+            } catch (e: ActivityNotFoundException) {
+                // Некоторые прошивки блокируют этот системный диалог — открываем общие
+                // настройки приложения, там то же самое можно включить вручную.
+                openAppDetailsSettings()
+            }
+        }
+    }
+    private fun openAppDetailsSettings() {
+        startActivity(
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                 data = Uri.fromParts("package", packageName, null)
             }
-            startActivity(intent)
-        }
+        )
     }
     override fun onSupportNavigateUp(): Boolean {
         finish()

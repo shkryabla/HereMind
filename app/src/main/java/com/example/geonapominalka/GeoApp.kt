@@ -2,7 +2,6 @@ package com.example.geonapominalka
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
@@ -17,7 +16,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 class GeoApp : Application() {
     val database by lazy { AppDatabase.getInstance(this) }
@@ -27,7 +25,7 @@ class GeoApp : Application() {
     override fun onCreate() {
         super.onCreate()
         configureOsmdroid()
-        createNotificationChannels()
+        NotificationChannels.ensureCreated(this)
         applySavedTheme()
         observeActiveTaskCount()
     }
@@ -53,14 +51,6 @@ class GeoApp : Application() {
         // пока не превышен лимит по размеру, а не по времени)
         Configuration.getInstance().tileFileSystemCacheMaxBytes = TILE_CACHE_MAX_BYTES
         Configuration.getInstance().tileFileSystemCacheTrimBytes = TILE_CACHE_TRIM_BYTES
-    }
-    /** Канал прихода в зону создаётся сразу с сохранённым звуком/вибрацией из настроек. */
-    private fun createNotificationChannels() {
-        appScope.launch {
-            val soundUri = settingsRepository.soundUri.first()?.let { Uri.parse(it) }
-            val vibration = settingsRepository.vibration.first()
-            NotificationChannels.ensureCreated(this@GeoApp, soundUri, vibration)
-        }
     }
     private fun applySavedTheme() {
         appScope.launch {

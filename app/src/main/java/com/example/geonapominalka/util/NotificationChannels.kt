@@ -2,21 +2,22 @@ package com.example.geonapominalka.util
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Build
 import com.example.geonapominalka.R
 
 /**
- * Звук и вибрация уведомления о приходе в зону задаются ТОЛЬКО через канал
- * REMINDER_CHANNEL_ID — на Android 8+ Builder.setSound()/setVibrate() игнорируются,
- * если канал уже создан. Канал foreground-сервиса отдельный и всегда без звука,
- * чтобы кастомный звук не влиял на служебное уведомление "напомниТут активно".
+ * Создаёт оба канала уведомлений один раз при первом запуске приложения.
+ *
+ * Звук и вибрация канала "Гео-напоминания" здесь НЕ задаются — начиная с Android 8,
+ * система намеренно блокирует программное изменение звука/вибрации канала после его
+ * создания (это защита пользовательских настроек от приложений). Попытки обойти это
+ * через delete+recreate канала здесь были и не сработали надёжно на всех прошивках —
+ * поэтому звук пользователь настраивает сам через системные настройки канала
+ * (см. кнопку в SettingsActivity), это единственный способ, который гарантированно
+ * работает на любом устройстве.
  */
 object NotificationChannels {
-    /** Создаёт оба канала, если их ещё нет. Повторный вызов ничего не меняет. */
-    fun ensureCreated(context: Context, soundUri: Uri?, vibrationEnabled: Boolean) {
+    fun ensureCreated(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(NotificationManager::class.java)
         if (manager.getNotificationChannel(Constants.NOTIFICATION_CHANNEL_ID) == null) {
@@ -33,39 +34,17 @@ object NotificationChannels {
             )
         }
         if (manager.getNotificationChannel(Constants.REMINDER_CHANNEL_ID) == null) {
-            manager.createNotificationChannel(buildReminderChannel(context, soundUri, vibrationEnabled))
-        }
-    }
-
-    /** Единственный способ поменять звук/вибрацию на Android 8+ — канал неизменяем после создания. */
-    fun rebuildReminderChannel(context: Context, soundUri: Uri?, vibrationEnabled: Boolean) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val manager = context.getSystemService(NotificationManager::class.java)
-        manager.deleteNotificationChannel(Constants.REMINDER_CHANNEL_ID)
-        manager.createNotificationChannel(buildReminderChannel(context, soundUri, vibrationEnabled))
-        // Диагностика: система может молча откатить звук на стандартный, если Uri
-        // оказался недоступен на момент создания канала — без этого лога это незаметно.
-        val actualSound = manager.getNotificationChannel(Constants.REMINDER_CHANNEL_ID)?.sound
-        AppLogger.log(
-            "NotifyChannel",
-            "Запрошен звук: $soundUri; фактически сохранён в канале: $actualSound"
-        )
-    }
-
-    private fun buildReminderChannel(context: Context, soundUri: Uri?, vibrationEnabled: Boolean): NotificationChannel {
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        return NotificationChannel(
-            Constants.REMINDER_CHANNEL_ID,
-            context.getString(R.string.reminder_channel_name),
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = context.getString(R.string.reminder_channel_description)
-            setSound(soundUri ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audioAttributes)
-            enableVibration(vibrationEnabled)
-            if (vibrationEnabled) vibrationPattern = longArrayOf(0, 300, 200, 300)
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    Constants.REMINDER_CHANNEL_ID,
+                    context.getString(R.string.reminder_channel_name),
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = context.getString(R.string.reminder_channel_description)
+                    enableVibration(true)
+                    vibrationPattern = longArrayOf(0, 300, 200, 300)
+                }
+            )
         }
     }
 }

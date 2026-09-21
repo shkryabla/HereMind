@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.location.Location
-import android.media.RingtoneManager
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -27,7 +26,6 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 /**
  * Foreground-сервис, отслеживающий текущее местоположение и сверяющий его
  * со всеми активными задачами из БД. При входе в радиус — уведомление
@@ -347,11 +345,10 @@ class LocationForegroundService : Service() {
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        // Настройки звука/вибрации берём из SettingsRepository (п.1.7 ТЗ)
-        val soundUriString = app.settingsRepository.soundUri.first()
-        val soundUri = soundUriString?.let { android.net.Uri.parse(it) }
-            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        val vibrationEnabled = app.settingsRepository.vibration.first()
+        // Звук и вибрация полностью управляются каналом REMINDER_CHANNEL_ID — пользователь
+        // настраивает их через системные настройки канала (см. SettingsActivity), здесь
+        // Builder.setSound()/setVibrate() намеренно не вызываются: на Android 8+ они всё
+        // равно игнорируются, раз канал уже создан.
         val builder = NotificationCompat.Builder(this, Constants.REMINDER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(reminder.name)
@@ -363,10 +360,6 @@ class LocationForegroundService : Service() {
             .setContentIntent(contentIntent)
             .addAction(0, getString(R.string.action_done), doneIntent)
             .addAction(0, getString(R.string.action_snooze), snoozeIntent)
-            .setSound(soundUri)
-        if (vibrationEnabled) {
-            builder.setVibrate(longArrayOf(0, 300, 200, 300))
-        }
         NotificationManagerCompat.from(this).notify(notificationId, builder.build())
     }
     override fun onDestroy() {

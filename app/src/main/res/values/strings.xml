@@ -41,10 +41,9 @@
     <string name="action_add_task">Новая задача</string>
     <string name="action_done">Выполнено</string>
     <string name="action_snooze">Отложить</string>
-    <string name="action_choose_sound">Выбрать звук уведомления</string>
-    <string name="msg_sound_import_failed">Не удалось использовать этот файл как звук уведомления</string>
-    <string name="label_current_sound">Текущий звук: %1$s</string>
-    <string name="sound_default">Стандартный</string>
+    <string name="label_sound">Звук и вибрация</string>
+    <string name="label_sound_hint">Настраиваются напрямую в системе Android — начиная с версии 8 приложениям запрещено менять звук уведомлений программно, это гарантирует, что выбор всегда сохраняется и реально проигрывается.</string>
+    <string name="action_open_sound_settings">Открыть настройки звука уведомлений</string>
     <string name="action_reset_data">Сбросить все данные</string>
     <string name="label_coordinates">Координаты</string>
     <string name="coordinates_format">%1$.5f, %2$.5f</string>
@@ -56,7 +55,6 @@
     <string name="dialog_activity_recognition_title">Нужно разрешение</string>
     <string name="dialog_activity_recognition_message">Адаптивный режим точнее работает, если приложение знает, стоите вы на месте, идёте пешком или едете — для этого нужно разрешение на распознавание активности. Без него режим тоже будет работать, но менее точно (по скорости из GPS). Выдать разрешение?</string>
     <string name="msg_activity_recognition_denied">Адаптивный режим включён, но без распознавания активности — точность оценки скорости ниже</string>
-    <string name="label_vibration">Вибрация</string>
     <string name="label_map_style">Стиль карты</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
@@ -87,6 +85,6 @@
     <string name="dialog_permissions_message">Чтобы приложение отслеживало ваши гео-напоминания и присылало уведомления вовремя, нужны разрешения на геолокацию, на показ уведомлений и на распознавание активности (для адаптивной экономии батареи — приложение реже опрашивает GPS, когда вы стоите на месте, и чаще — когда двигаетесь). Сейчас будут показаны системные запросы — подтвердите их.\n\nЭтого обычно достаточно, чтобы уведомления приходили даже при заблокированном экране. Если на вашем устройстве (особенно Xiaomi, Huawei и похожих прошивках) уведомления о приходе в зону всё же не приходят — откройте «Настройки → Фоновая работа» в этом приложении: там объяснено, что проверить.</string>
     <string name="action_continue">Продолжить</string>
     <string name="label_background_work">Фоновая работа</string>
-    <string name="label_background_work_hint">Приложению не требуется разрешение «Разрешить всегда» — координаты поступают через фоновую службу, пока есть активные задачи, даже при заблокированном экране. Если уведомления о приходе в зону всё же не приходят — на некоторых устройствах (Xiaomi, Huawei и похожих) помогает вручную выдать геолокацию «в любом режиме» и снять приложение с оптимизации батареи в системных настройках.</string>
-    <string name="action_open_app_settings">Открыть настройки приложения</string>
+    <string name="label_background_work_hint">Координаты поступают через фоновую службу, пока есть активные задачи, даже при заблокированном экране. Но на некоторых прошивках (Xiaomi, Huawei и похожих) агрессивное энергосбережение всё равно может мешать приходу уведомлений, когда приложение свёрнуто. Кнопка ниже отключает эту оптимизацию для напомниТут одним нажатием.</string>
+    <string name="action_open_app_settings">Отключить оптимизацию батареи</string>
 </resources>
