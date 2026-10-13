@@ -113,6 +113,23 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@id/searchField"
             tools:text="Кэш: 0 МБ" />
+        <!-- Атрибуция источников карты (OpenStreetMap, CARTO) — обязательна по условиям
+             использования тайлов. Та же строка и стиль, что у метки кэша, прижата к правому краю. -->
+        <TextView
+            android:id="@+id/attributionLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="6dp"
+            android:alpha="0.55"
+            android:background="#66000000"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            app:layout_constraintTop_toTopOf="@id/cacheSizeLabel"
+            app:layout_constraintBottom_toBottomOf="@id/cacheSizeLabel"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="© OpenStreetMap, © CARTO" />
     </androidx.constraintlayout.widget.ConstraintLayout>
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navView"

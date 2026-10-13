@@ -19,12 +19,15 @@
     <string name="cd_my_location">Моё местоположение</string>
     <string name="hint_search_address">Поиск адреса…</string>
     <string name="cache_size_label">Кэш: %.1f МБ</string>
+    <string name="label_map_attribution">© OpenStreetMap, © CARTO</string>
     <string name="hint_name">Имя</string>
     <string name="hint_description">Описание</string>
     <string name="hint_radius">Радиус (м)</string>
     <string name="dialog_create_title">Новое напоминание</string>
     <string name="dialog_create_message">Координаты: %1$.5f, %2$.5f</string>
     <string name="msg_resolving_address">Определяю адрес…</string>
+    <string name="msg_resolving_shared_location">Определяю место…</string>
+    <string name="msg_share_location_not_found">Не удалось определить координаты из этой ссылки — отметьте точку на карте вручную</string>
     <string name="dialog_delete_message">Удалить задачу?</string>
     <string name="dialog_delete_task_name_line">Название: %1$s</string>
     <string name="dialog_delete_task_description_line">Описание: %1$s</string>

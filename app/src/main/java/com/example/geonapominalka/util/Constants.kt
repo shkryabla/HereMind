@@ -14,6 +14,7 @@ object Constants {
     const val EXTRA_INITIAL_LAT = "extra_initial_lat"
     const val EXTRA_INITIAL_LNG = "extra_initial_lng"
     const val EXTRA_INITIAL_ADDRESS = "extra_initial_address"
+    const val EXTRA_INITIAL_NAME = "extra_initial_name"
     // Анти-спам: не повторять уведомление чаще, чем раз в 10 минут для одной задачи
     const val NOTIFICATION_COOLDOWN_MS = 10 * 60 * 1000L
     // Гистерезис при выходе из зоны, чтобы не дёргалось на границе радиуса

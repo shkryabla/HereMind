@@ -49,6 +49,10 @@ class TaskEditActivity : AppCompatActivity() {
             intent.getStringExtra(Constants.EXTRA_INITIAL_ADDRESS)?.let { address ->
                 binding.descriptionField.setText(address)
             }
+            // Название места из шаринга (ShareReceiverActivity) — как стартовое имя задачи.
+            intent.getStringExtra(Constants.EXTRA_INITIAL_NAME)?.let { name ->
+                binding.nameField.setText(name)
+            }
         }
         viewModel.reminder.observe(this) { reminder ->
             reminder ?: return@observe

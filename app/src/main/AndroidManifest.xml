@@ -38,6 +38,25 @@
             android:name=".ui.TaskEditActivity"
             android:exported="false"
             android:label="@string/title_task_edit" />
+        <!-- Приём шаринга местоположения из других приложений (Google/Яндекс Карты и
+             т.п. -> "Поделиться" -> напомниТут) и geo:-ссылок навигаторов. -->
+        <activity
+            android:name=".ui.ShareReceiverActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.GeoNapominalka">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="geo" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.TaskListActivity"
             android:exported="false"
