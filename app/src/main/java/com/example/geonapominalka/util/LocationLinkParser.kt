@@ -81,8 +81,11 @@ object LocationLinkParser {
         return null
     }
 
-    private fun validOrNull(lat: String, lng: String, name: String? = null): ParsedLocation? =
-        validOrNull(lat.toDoubleOrNull() ?: return null, lng.toDoubleOrNull() ?: return null, name)
+    private fun validOrNull(lat: String, lng: String, name: String? = null): ParsedLocation? {
+        val latD = lat.toDoubleOrNull() ?: return null
+        val lngD = lng.toDoubleOrNull() ?: return null
+        return validOrNull(latD, lngD, name)
+    }
 
     private fun validOrNull(lat: Double, lng: Double, name: String?): ParsedLocation? {
         if (lat !in -90.0..90.0 || lng !in -180.0..180.0) return null
