@@ -35,6 +35,11 @@ class SettingsActivity : AppCompatActivity() {
             ).show()
         }
     }
+    // На Android 10+ фоновая геолокация запрашивается ОТДЕЛЬНО от обычной — система
+    // игнорирует запрос, если он идёт в одной пачке с foreground-разрешением.
+    private val requestBackgroundLocation = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* результат не критичен — кнопка сама отражает текущее состояние при следующем открытии экрана */ }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
@@ -47,6 +52,7 @@ class SettingsActivity : AppCompatActivity() {
         setupMapStyle()
         setupSoundSettingsLink()
         setupReset()
+        setupBackgroundLocationLink()
         setupBackgroundWorkLink()
     }
     private fun setupTheme() {
@@ -230,6 +236,37 @@ class SettingsActivity : AppCompatActivity() {
             }
         )
     }
+    /**
+     * Фоновая геолокация ("в любом режиме") — опционально, по требованию Google Play
+     * показываем явное раскрытие (Prominent Disclosure) непосредственно перед системным
+     * диалогом запроса разрешения, а не просто запрашиваем молча.
+     */
+    private fun setupBackgroundLocationLink() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            binding.btnRequestBackgroundLocation.visibility = android.view.View.GONE
+            return
+        }
+        binding.btnRequestBackgroundLocation.setOnClickListener {
+            if (hasBackgroundLocationPermission()) {
+                android.widget.Toast.makeText(
+                    this, R.string.msg_background_location_already_granted, android.widget.Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_background_location_title)
+                .setMessage(R.string.dialog_background_location_message)
+                .setPositiveButton(R.string.action_continue) { dialog, _ ->
+                    dialog.dismiss()
+                    requestBackgroundLocation.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                }
+                .setNegativeButton(R.string.action_cancel) { dialog, _ -> dialog.dismiss() }
+                .show()
+        }
+    }
+    private fun hasBackgroundLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true

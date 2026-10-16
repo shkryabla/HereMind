@@ -7,6 +7,7 @@ object Constants {
     const val REMINDER_NOTIFICATION_ID_BASE = 2000
     const val ACTION_DONE = "com.example.geonapominalka.action.DONE"
     const val ACTION_SNOOZE = "com.example.geonapominalka.action.SNOOZE"
+    const val ACTION_STOP_SERVICE = "com.example.geonapominalka.action.STOP_SERVICE"
     const val EXTRA_REMINDER_ID = "extra_reminder_id"
     const val EXTRA_PICKED_LAT = "extra_picked_lat"
     const val EXTRA_PICKED_LNG = "extra_picked_lng"

@@ -2,10 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- Задекларировано, но НЕ запрашивается в рантайме: foreground-сервис с
-         foregroundServiceType="location" получает координаты в фоне и без него.
-         Оставлено про запас — как задел на случай будущего сценария без
-         foreground-сервиса (см. обсуждение). -->
+    <!-- Запрашивается ОПЦИОНАЛЬНО, отдельным шагом из SettingsActivity (с Prominent
+         Disclosure перед системным диалогом — см. requirements Google Play). Foreground-
+         сервис с foregroundServiceType="location" формально получает координаты в фоне и
+         без этого разрешения, но на части устройств доставка уведомлений обрывается после
+         удаления задачи из списка последних приложений — выдача этого разрешения снимает
+         ограничение. -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

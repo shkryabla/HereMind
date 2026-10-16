@@ -107,6 +107,13 @@
             android:text="@string/label_background_work_hint"
             android:textSize="13sp" />
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRequestBackgroundLocation"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/action_request_background_location" />
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOpenAppSettings"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"

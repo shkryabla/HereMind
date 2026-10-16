@@ -58,6 +58,16 @@ class LocationForegroundService : Service() {
         activityRecognitionClient = ActivityRecognition.getClient(this)
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == Constants.ACTION_STOP_SERVICE) {
+            // Пользователь нажал "Остановить" в уведомлении — явно прекращаем работу сервиса.
+            // Если активные задачи остались, он снова запустится автоматически при следующем
+            // открытии приложения (см. MainActivity.onResume).
+            AppLogger.log("Location", "Сервис остановлен пользователем из уведомления")
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         startForegroundWithNotification()
         if (!settingsObserverStarted) {
             settingsObserverStarted = true
@@ -138,12 +148,20 @@ class LocationForegroundService : Service() {
             Intent(this, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        // Кнопка "Остановить" — требование Google Play: у постоянного уведомления должен быть
+        // явный способ прекратить операцию, не удаляя приложение целиком.
+        val stopIntent = PendingIntent.getService(
+            this, 0,
+            Intent(this, LocationForegroundService::class.java).setAction(Constants.ACTION_STOP_SERVICE),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         val notification = NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
             .setContentTitle(getString(R.string.foreground_notification_title))
             .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(contentIntent)
+            .addAction(0, getString(R.string.action_stop_service), stopIntent)
             .build()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(

@@ -187,7 +187,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_task_manager -> startActivity(Intent(this, TaskListActivity::class.java))
                 R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
                 R.id.nav_log -> startActivity(Intent(this, LogActivity::class.java))
-                R.id.nav_exit -> finishAffinity()
                 R.id.nav_force_close -> confirmForceClose()
             }
             binding.drawerLayout.closeDrawers()
@@ -488,6 +487,23 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         map.onResume()
+        ensureLocationServiceRunning()
+    }
+    /**
+     * Если пользователь ранее остановил сервис кнопкой "Остановить" в уведомлении, а активные
+     * задачи остались — при следующем открытии приложения перезапускаем его. Запуск уже
+     * работающего сервиса безопасен и ничего не ломает (см. onStartCommand — повторная
+     * инициализация пропускается, если опрос местоположения уже идёт).
+     */
+    private fun ensureLocationServiceRunning() {
+        lifecycleScope.launch {
+            val app = GeoApp.from(this@MainActivity)
+            if (app.reminderRepository.getActiveOnce().isNotEmpty()) {
+                ContextCompat.startForegroundService(
+                    this@MainActivity, Intent(this@MainActivity, com.example.geonapominalka.service.LocationForegroundService::class.java)
+                )
+            }
+        }
     }
     override fun onPause() {
         super.onPause()
