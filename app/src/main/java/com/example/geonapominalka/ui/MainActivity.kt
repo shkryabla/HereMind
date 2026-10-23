@@ -151,27 +151,13 @@ class MainActivity : AppCompatActivity() {
      *  "OpenStreetMap" и "CARTO" внутри строки кликабельны и ведут на их официальные
      *  страницы атрибуции. */
     private fun setupAttributionLabel() {
-        val text = getString(R.string.label_map_attribution)
-        val spannable = android.text.SpannableString(text)
-        attachLink(spannable, text, "OpenStreetMap", "https://www.openstreetmap.org/copyright")
-        attachLink(spannable, text, "CARTO", "https://carto.com/attributions")
-        binding.attributionLabel.text = spannable
-        binding.attributionLabel.movementMethod = android.text.method.LinkMovementMethod.getInstance()
-        binding.attributionLabel.highlightColor = android.graphics.Color.TRANSPARENT
-    }
-    private fun attachLink(spannable: android.text.SpannableString, fullText: String, target: String, url: String) {
-        val start = fullText.indexOf(target)
-        if (start == -1) return
-        spannable.setSpan(
-            object : android.text.style.ClickableSpan() {
-                override fun onClick(widget: android.view.View) {
-                    startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
-                }
-                override fun updateDrawState(ds: android.text.TextPaint) {
-                    ds.isUnderlineText = true
-                }
-            },
-            start, start + target.length, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        com.example.geonapominalka.util.LinkSpanUtils.applyLinks(
+            binding.attributionLabel,
+            getString(R.string.label_map_attribution),
+            mapOf(
+                "OpenStreetMap" to "https://www.openstreetmap.org/copyright",
+                "CARTO" to "https://carto.com/attributions"
+            )
         )
     }
     private fun setupToolbarAndDrawer() {
@@ -187,6 +173,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_task_manager -> startActivity(Intent(this, TaskListActivity::class.java))
                 R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
                 R.id.nav_log -> startActivity(Intent(this, LogActivity::class.java))
+                R.id.nav_about -> startActivity(Intent(this, AboutActivity::class.java))
                 R.id.nav_force_close -> confirmForceClose()
             }
             binding.drawerLayout.closeDrawers()

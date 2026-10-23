@@ -75,6 +75,10 @@
             android:name=".ui.LogActivity"
             android:exported="false"
             android:label="@string/title_log" />
+        <activity
+            android:name=".ui.AboutActivity"
+            android:exported="false"
+            android:label="@string/nav_about" />
         <!-- Foreground-сервис геолокации. Запускается только когда есть активные задачи -->
         <service
             android:name=".service.LocationForegroundService"

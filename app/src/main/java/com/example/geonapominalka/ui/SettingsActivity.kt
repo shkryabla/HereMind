@@ -114,36 +114,37 @@ class SettingsActivity : AppCompatActivity() {
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) ==
             PackageManager.PERMISSION_GRANTED
     private fun setIntervalGroupEnabled(enabled: Boolean) {
-        binding.intervalGroup.alpha = if (enabled) 1.0f else 0.4f
-        for (i in 0 until binding.intervalGroup.childCount) {
-            binding.intervalGroup.getChildAt(i).isEnabled = enabled
-        }
+        binding.intervalSlider.isEnabled = enabled
+        binding.intervalSlider.alpha = if (enabled) 1.0f else 0.4f
+        binding.intervalValueLabel.alpha = if (enabled) 1.0f else 0.4f
     }
+    /** Позиции слайдера 0..5 — те же фиксированные значения, что раньше были радиокнопками. */
+    private val intervalSteps = intArrayOf(30, 60, 180, 300, 600, 1200)
     private fun setupInterval() {
         lifecycleScope.launch {
             app.settingsRepository.intervalSeconds.collect { seconds ->
-                val id = when (seconds) {
-                    30 -> R.id.radioInterval30
-                    180 -> R.id.radioInterval180
-                    300 -> R.id.radioInterval300
-                    600 -> R.id.radioInterval600
-                    1200 -> R.id.radioInterval1200
-                    else -> R.id.radioInterval60
+                val position = intervalSteps.indexOf(seconds).takeIf { it != -1 } ?: 1
+                if (binding.intervalSlider.value != position.toFloat()) {
+                    binding.intervalSlider.value = position.toFloat()
                 }
-                if (binding.intervalGroup.checkedRadioButtonId != id) binding.intervalGroup.check(id)
+                binding.intervalValueLabel.text = intervalLabel(intervalSteps[position])
             }
         }
-        binding.intervalGroup.setOnCheckedChangeListener { _, checkedId ->
-            val seconds = when (checkedId) {
-                R.id.radioInterval30 -> 30
-                R.id.radioInterval180 -> 180
-                R.id.radioInterval300 -> 300
-                R.id.radioInterval600 -> 600
-                R.id.radioInterval1200 -> 1200
-                else -> 60
+        binding.intervalSlider.addOnChangeListener { _, value, fromUser ->
+            val seconds = intervalSteps[value.toInt()]
+            binding.intervalValueLabel.text = intervalLabel(seconds)
+            if (fromUser) {
+                lifecycleScope.launch { app.settingsRepository.setIntervalSeconds(seconds) }
             }
-            lifecycleScope.launch { app.settingsRepository.setIntervalSeconds(seconds) }
         }
+    }
+    private fun intervalLabel(seconds: Int): String = when (seconds) {
+        30 -> getString(R.string.interval_30s)
+        180 -> getString(R.string.interval_180s)
+        300 -> getString(R.string.interval_300s)
+        600 -> getString(R.string.interval_600s)
+        1200 -> getString(R.string.interval_1200s)
+        else -> getString(R.string.interval_60s)
     }
     /**
      * Стиль карты — реализовано как выбор стиля/слоя, т.к. у бесплатных провайдеров

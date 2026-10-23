@@ -44,14 +44,10 @@ class TaskEditActivity : AppCompatActivity() {
             val lat = intent.getDoubleExtra(Constants.EXTRA_INITIAL_LAT, 0.0)
             val lng = intent.getDoubleExtra(Constants.EXTRA_INITIAL_LNG, 0.0)
             viewModel.setInitialCoordinates(lat, lng)
-            // Адрес, найденный reverse-геокодингом в диалоге долгого тапа (если успел прийти
-            // до нажатия "Напомнить здесь") — подставляем как стартовое описание задачи.
+            // Адрес — из reverse-геокодинга в диалоге долгого тапа или из ShareReceiverActivity
+            // (шаринг места из другого приложения) — подставляем как стартовое описание задачи.
             intent.getStringExtra(Constants.EXTRA_INITIAL_ADDRESS)?.let { address ->
                 binding.descriptionField.setText(address)
-            }
-            // Название места из шаринга (ShareReceiverActivity) — как стартовое имя задачи.
-            intent.getStringExtra(Constants.EXTRA_INITIAL_NAME)?.let { name ->
-                binding.nameField.setText(name)
             }
         }
         viewModel.reminder.observe(this) { reminder ->
@@ -82,6 +78,15 @@ class TaskEditActivity : AppCompatActivity() {
         }
         binding.btnSave.setOnClickListener { onSaveClicked() }
         binding.btnDelete.setOnClickListener { confirmDelete() }
+        focusNameField()
+    }
+    /** Курсор сразу в поле имени и открытая клавиатура — экран открывают именно чтобы его ввести. */
+    private fun focusNameField() {
+        binding.nameField.requestFocus()
+        binding.nameField.post {
+            val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+            imm.showSoftInput(binding.nameField, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+        }
     }
     private fun onSaveClicked() {
         val name = binding.nameField.text?.toString()?.trim().orEmpty()
@@ -91,7 +96,7 @@ class TaskEditActivity : AppCompatActivity() {
         }
         binding.nameLayout.error = null
         val description = binding.descriptionField.text?.toString()?.trim()
-        val radius = binding.radiusField.text?.toString()?.toIntOrNull() ?: 200
+        val radius = binding.radiusField.text?.toString()?.toIntOrNull() ?: 100
         viewModel.save(name, description, radius)
     }
     private fun confirmDelete() {

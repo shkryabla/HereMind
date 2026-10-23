@@ -56,11 +56,13 @@ class ShareReceiverActivity : AppCompatActivity() {
         return parsed.copy(name = address)
     }
 
-    private fun openTaskEdit(lat: Double, lng: Double, name: String?) {
+    private fun openTaskEdit(lat: Double, lng: Double, address: String?) {
+        // Название/адрес места из шаринга — в описание, а не в имя задачи (имя пользователь
+        // вводит сам, курсор и клавиатура сразу открываются на этом поле — см. TaskEditActivity).
         startActivity(Intent(this, TaskEditActivity::class.java).apply {
             putExtra(Constants.EXTRA_INITIAL_LAT, lat)
             putExtra(Constants.EXTRA_INITIAL_LNG, lng)
-            name?.let { putExtra(Constants.EXTRA_INITIAL_NAME, it) }
+            address?.let { putExtra(Constants.EXTRA_INITIAL_ADDRESS, it) }
         })
     }
 }

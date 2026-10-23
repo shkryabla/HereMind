@@ -21,7 +21,7 @@ data class Reminder(
     val description: String? = null,
     val latitude: Double,
     val longitude: Double,
-    val radius: Int = 200,
+    val radius: Int = 100,
     val createdAt: Long = System.currentTimeMillis(),
     val status: String = ReminderStatus.ACTIVE,
     // Время последнего показанного уведомления (для анти-спама, гистерезис 10 минут)

@@ -81,6 +81,10 @@
     <string name="nav_task_manager">Менеджер задач</string>
     <string name="nav_settings">Настройки</string>
     <string name="nav_log">Консоль</string>
+    <string name="nav_about">О приложении</string>
+    <string name="label_app_version">Версия %1$s</string>
+    <string name="label_about_description">напомниТут — приложение для гео-напоминаний: задача срабатывает не по времени, а когда вы оказываетесь рядом с нужным местом, даже если телефон заблокирован или приложение свёрнуто.\n\nКарта — OpenStreetMap через OSMDroid, тайлы CARTO Basemaps и Esri, без Google-ключей и привязки банковской карты. Полностью бесплатно, без рекламы, с открытым исходным кодом.</string>
+    <string name="label_about_attribution_title">Источники карты</string>
     <string name="nav_force_close">Выход</string>
     <string name="dialog_force_close_message">Приложение полностью закроется, сервис геолокации будет остановлен. Уведомления по активным задачам не придут, пока вы не откроете приложение снова. Продолжить?</string>
     <string name="dialog_force_close_message_no_tasks">Приложение и все его процессы будут полностью завершены. Продолжить?</string>
